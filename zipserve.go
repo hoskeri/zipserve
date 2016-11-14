@@ -3,14 +3,16 @@ package zipserve
 import "net/http"
 import "archive/zip"
 import "os"
+import "log"
 
 type ZipHttpFile struct {
-	z *zip.File
+	z  *zip.File
+	fi os.FileInfo
 	http.File
 }
 
 func NewZipHttpFile(z *zip.File) ZipHttpFile {
-	return ZipHttpFile{z: z}
+	return ZipHttpFile{z: z, fi.FileInfo.}
 }
 
 func (z ZipHttpFile) Read(p []byte) (n int, err error) {
@@ -33,17 +35,24 @@ func (z ZipHttpFile) Stat() (fi os.FileInfo, err error) {
 	return
 }
 
+func (z ZipFileSystem) Open(path string) (f http.File, err error) {
+	entry, ok := z.entries[path]
+	if !ok {
+		return nil, os.ErrNotExist
+	}
+	return entry, nil
+}
+
 type entryMap map[string]ZipHttpFile
 
-type ZipServer struct {
-	http.Handler
+type ZipFileSystem struct {
 	http.FileSystem
 	zip     *zip.ReadCloser
 	entries entryMap
 }
 
-func New(f string) (z *ZipServer, err error) {
-	z = new(ZipServer)
+func New(f string) (z *ZipFileSystem, err error) {
+	z = new(ZipFileSystem)
 	z.entries = make(entryMap)
 
 	z.zip, err = zip.OpenReader(f)
@@ -54,13 +63,6 @@ func New(f string) (z *ZipServer, err error) {
 	for _, f := range z.zip.File {
 		z.entries[f.Name] = NewZipHttpFile(f)
 	}
-	return
-}
 
-func (z *ZipServer) Open(path string) (f http.File, err error) {
-	return z.entries[path], nil
-}
-
-func (z *ZipServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
