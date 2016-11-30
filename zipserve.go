@@ -3,23 +3,24 @@ package zipserve
 import "net/http"
 import "archive/zip"
 import "os"
-import "log"
+import "io"
 
 type ZipHttpFile struct {
-	z  *zip.File
-	fi os.FileInfo
+	z *zip.File
 	http.File
+	r io.ReadCloser
 }
 
 func NewZipHttpFile(z *zip.File) ZipHttpFile {
-	return ZipHttpFile{z: z, fi.FileInfo.}
+	return ZipHttpFile{z: z}
 }
 
 func (z ZipHttpFile) Read(p []byte) (n int, err error) {
-	return 0, nil
+	return z.r.Read(p)
 }
 
 func (z ZipHttpFile) Close() error {
+	z.r = nil
 	return nil
 }
 
@@ -32,7 +33,7 @@ func (z ZipHttpFile) ReadDir(count int) (entries []os.FileInfo, err error) {
 }
 
 func (z ZipHttpFile) Stat() (fi os.FileInfo, err error) {
-	return
+	return z.z.FileInfo(), nil
 }
 
 func (z ZipFileSystem) Open(path string) (f http.File, err error) {
@@ -40,6 +41,7 @@ func (z ZipFileSystem) Open(path string) (f http.File, err error) {
 	if !ok {
 		return nil, os.ErrNotExist
 	}
+	entry.r, err = entry.z.Open()
 	return entry, nil
 }
 
@@ -61,7 +63,7 @@ func New(f string) (z *ZipFileSystem, err error) {
 	}
 
 	for _, f := range z.zip.File {
-		z.entries[f.Name] = NewZipHttpFile(f)
+		z.entries["/"+f.Name] = NewZipHttpFile(f)
 	}
 
 	return

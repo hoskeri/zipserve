@@ -2,8 +2,8 @@ package zipserve
 
 import "testing"
 import "net/http/httptest"
-import "bytes"
 import "net/http"
+import "bytes"
 
 func TestZipRead(t *testing.T) {
 	z, err := New("testdata/test.jar")
@@ -23,8 +23,7 @@ func TestZipRead(t *testing.T) {
 		t.Fail()
 	}
 
-	if w.Body != bytes.NewBuffer([]byte("aaaa")) {
-		t.Log(w.Body)
+	if !bytes.Equal(w.Body.Bytes(), []byte("aaaa\n")) {
 		t.Fail()
 	}
 }
