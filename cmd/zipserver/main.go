@@ -13,12 +13,24 @@ type zipserver struct {
 
 func main() {
 	zs := zipserver{}
+	var single string
+
 	flag.StringVar(&zs.spec, "spec", "", "list of zip file paths")
+	flag.StringVar(&single, "zip", "", "single zip file")
 	flag.Parse()
 
-	if zs.spec == "" {
+	if zs.spec == "" && single == "" {
 		flag.Usage()
 		os.Exit(1)
 	}
-	log.Println("starting zipserver")
+
+	if single != "" {
+		zs.zipfiles = append(zs.zipfiles, single)
+	}
+
+	if zs.spec != "" {
+		log.Printf("serving from spec: %s\n", zs.spec)
+	}
+
+	log.Printf("entries: %s\n", zs.zipfiles)
 }
