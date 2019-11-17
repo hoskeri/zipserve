@@ -5,34 +5,34 @@ import "archive/zip"
 import "os"
 import "io"
 
-type ZipHttpFile struct {
+type zipHttpFile struct {
 	z *zip.File
 	http.File
 	r io.ReadCloser
 }
 
-func NewZipHttpFile(z *zip.File) ZipHttpFile {
-	return ZipHttpFile{z: z}
+func newZipHttpFile(z *zip.File) zipHttpFile {
+	return zipHttpFile{z: z}
 }
 
-func (z ZipHttpFile) Read(p []byte) (n int, err error) {
+func (z zipHttpFile) Read(p []byte) (n int, err error) {
 	return z.r.Read(p)
 }
 
-func (z ZipHttpFile) Close() error {
+func (z zipHttpFile) Close() error {
 	z.r = nil
 	return nil
 }
 
-func (z ZipHttpFile) Seek(offset int64, whence int) (ret int64, err error) {
+func (z zipHttpFile) Seek(offset int64, whence int) (ret int64, err error) {
 	return
 }
 
-func (z ZipHttpFile) ReadDir(count int) (entries []os.FileInfo, err error) {
+func (z zipHttpFile) ReadDir(count int) (entries []os.FileInfo, err error) {
 	return
 }
 
-func (z ZipHttpFile) Stat() (fi os.FileInfo, err error) {
+func (z zipHttpFile) Stat() (fi os.FileInfo, err error) {
 	return z.z.FileInfo(), nil
 }
 
@@ -45,7 +45,7 @@ func (z ZipFileSystem) Open(path string) (f http.File, err error) {
 	return entry, nil
 }
 
-type entryMap map[string]ZipHttpFile
+type entryMap map[string]zipHttpFile
 
 type ZipFileSystem struct {
 	http.FileSystem
@@ -63,7 +63,7 @@ func New(f string) (z *ZipFileSystem, err error) {
 	}
 
 	for _, f := range z.zip.File {
-		z.entries["/"+f.Name] = NewZipHttpFile(f)
+		z.entries["/"+f.Name] = newZipHttpFile(f)
 	}
 
 	return
